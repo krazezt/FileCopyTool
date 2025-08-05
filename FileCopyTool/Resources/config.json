@@ -1,17 +1,7 @@
 [
   {
-    "From": "\u0022C:\\Users\\tran.quan\\OneDrive - System Integrator Corp\\Desktop\\Test\\TestDep\\Dep1\\ABC1.txt\u0022",
-    "To": "C:\\inetpub\\wwwroot\\TestDes",
-    "IsChecked": true
-  },
-  {
-    "From": "ddd",
-    "To": "C:\\inetpub\\wwwroot\\TestDes",
-    "IsChecked": false
-  },
-  {
-    "From": "\u0022C:\\Users\\tran.quan\\OneDrive - System Integrator Corp\\Desktop\\Test\\TestDep\\Dep2\\ABC2.txt\u0022",
-    "To": "C:\\inetpub\\wwwroot\\TestDes",
+    "From": "",
+    "To": "",
     "IsChecked": true
   }
 ]
