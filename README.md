@@ -6,13 +6,14 @@ FileCopyTool is a Windows Forms application designed to simplify copying multipl
 
 - **Multiple Copy Rows**: Add multiple rows to specify different source files and destination folders.
 - **Drag-and-Drop**: Drag files and folders into the UI (requires File Explorer to run as administrator due to UAC).
+- **In-app Administrator File Explorer**: Provides the direct button to open File Explorer in the app as administrator.
 - **Browse Buttons**: Select files and folders using dialogs if drag-and-drop is unavailable.
 - **Global Hotkey**: Press `Ctrl+Shift+T` to perform copy operations without focusing the app.
 - **System Tray**: Minimize to the system tray and restore via double-click or hotkey.
 - **Multi-Language Support**: Switch between English (EN) and Japanese (JP) via a dropdown menu.
 - **Persistent Configurations**:
   - `copy-config.json`: Stores source (`From`) and destination (`To`) paths and checkbox states.
-  - `settings-config.json`: Stores the selected language (EN or JP).
+  - `settings-config.json`: Stores the app settings (language, notify setting).
 - **Error Handling**: Displays localized success, warning, and error messages for copy operations.
 
 ## Requirements
@@ -28,4 +29,5 @@ FileCopyTool is a Windows Forms application designed to simplify copying multipl
    - Clone the repository or download the source code.
    ```bash
    git clone https://github.com/krazezt/FileCopyTool.git
+
 
