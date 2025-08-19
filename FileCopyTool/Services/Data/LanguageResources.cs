@@ -26,6 +26,7 @@
 					{ "MessageCopyWarning", "Copy operation completed, but some errors occurred!" },
 					{ "MessageCopyError", "Error copying files: {0}" },
 					{ "MessageConfigError", "Error {0} configurations: {1}" },
+					{ "MessageCommonError", "Error occured: {0}" },
 					{ "MessageInstanceRunning", "Another instance of FileCopyTool is already running." },
 					{ "MessageSuccess", "Success" },
 					{ "MessageWarning", "Warning" },
@@ -37,7 +38,8 @@
 					{ "PopupSettingAll", "All"},
 					{ "PopupSettingWarningOrError", "Only when warning or error" },
 					{ "PopupSettingErrorOnly", "Only when error" },
-					{ "PopupSettingNever", "Never" }
+					{ "PopupSettingNever", "Never" },
+					{ "ButtonFileExplorer", "File Explorer (Admin)"}
 				}
 			},
 			{
@@ -58,6 +60,7 @@
 					{ "MessageCopyWarning", "コピー操作が完了しましたが、いくつかのエラーが発生しました！" },
 					{ "MessageCopyError", "ファイルのコピーでエラー：{0}" },
 					{ "MessageConfigError", "設定の{0}でエラー：{1}" },
+					{ "MessageCommonError", "エラー：{0}" },
 					{ "MessageInstanceRunning", "FileCopyToolの別のインスタンスが既に実行中です。" },
 					{ "MessageSuccess", "成功" },
 					{ "MessageWarning", "警告" },
@@ -69,7 +72,8 @@
 					{ "PopupSettingAll", "全て"},
 					{ "PopupSettingWarningOrError", "報告とエラーのみ" },
 					{ "PopupSettingErrorOnly", "エラーのみ" },
-					{ "PopupSettingNever", "なし" }
+					{ "PopupSettingNever", "なし" },
+					{ "ButtonFileExplorer", "ファイルエクスプローラー (Admin)"}
 				}
 			}
 		};

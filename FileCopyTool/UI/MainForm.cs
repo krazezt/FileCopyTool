@@ -1,6 +1,8 @@
 ﻿using FileCopyTool.Models;
 using FileCopyTool.Services.Data;
 using FileCopyTool.Services.Interfaces;
+using System.Diagnostics;
+using System.IO;
 
 namespace FileCopyTool.UI
 {
@@ -58,6 +60,7 @@ namespace FileCopyTool.UI
 
 			ToolStripMenuItem toolsMenu = new(LanguageResources.GetString("ToolsMenu", configService.CurrentLanguage));
 			ToolStripMenuItem settingsMenu = new(LanguageResources.GetString("SettingsMenu", configService.CurrentLanguage));
+			ToolStripMenuItem openFileExplorerMenu = new(LanguageResources.GetString("ButtonFileExplorer", configService.CurrentLanguage));
 			SetupToolsMenu(toolsMenu);
 
 			ToolStripMenuItem popupMenu = new(LanguageResources.GetString("PopupMenu", configService.CurrentLanguage));
@@ -72,7 +75,9 @@ namespace FileCopyTool.UI
 			toolBar.Items.Add(new ToolStripSeparator());
 			toolBar.Items.Add(settingsMenu);
 			toolBar.Items.Add(new ToolStripSeparator());
-			
+			toolBar.Items.Add(openFileExplorerMenu);
+			toolBar.Dock = DockStyle.Top;
+
 			var lblNote = new Label { Text = LanguageResources.GetString("LabelNote", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.TopLeft, Height = 15 };
 			var lblFrom = new Label { Text = LanguageResources.GetString("LabelFrom", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
 			var lblTo = new Label { Text = LanguageResources.GetString("LabelTo", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
@@ -85,16 +90,17 @@ namespace FileCopyTool.UI
 			var btnAddRow = new Button { Text = LanguageResources.GetString("ButtonAddRow", configService.CurrentLanguage), Size = new Size(75, 30) };
 
 			formControls.toolsMenu = toolsMenu;
+			formControls.btnAddRow = btnAddRow;
+			formControls.btnCopy = btnCopy;
+			formControls.btnMinimize = btnMinimize;
+			formControls.btnExit = btnExit;
 			formControls.settingsMenu = settingsMenu;
 			formControls.popupMenu = popupMenu;
 			formControls.languageMenu = languageMenu;
+			formControls.openFileExplorerMenu = openFileExplorerMenu;
 			formControls.lblNote = lblNote;
 			formControls.lblFrom = lblFrom;
 			formControls.lblTo = lblTo;
-			formControls.btnExit = btnExit;
-			formControls.btnMinimize = btnMinimize;
-			formControls.btnCopy = btnCopy;
-			formControls.btnAddRow = btnAddRow;
 
 			buttonPanel.Controls.Add(btnExit);
 			buttonPanel.Controls.Add(btnMinimize);
@@ -113,6 +119,7 @@ namespace FileCopyTool.UI
 
 			Controls.Add(mainPanel);
 
+			openFileExplorerMenu.Click += (s, e) => OpenHomeFileExplorer();
 			btnCopy.Click += (s, e) => PerformCopy();
 			btnMinimize.Click += (s, e) => MinimizeToTray();
 			btnExit.Click += (s, e) => ExitApplication();
@@ -358,6 +365,7 @@ namespace FileCopyTool.UI
 			formControls.popupSettingNever.Text = LanguageResources.GetString("PopupSettingNever", configService.CurrentLanguage);
 			formControls.popupMenu.Text = LanguageResources.GetString("PopupMenu", configService.CurrentLanguage);
 			formControls.languageMenu.Text = LanguageResources.GetString("LanguageMenu", configService.CurrentLanguage);
+			formControls.openFileExplorerMenu.Text = LanguageResources.GetString("ButtonFileExplorer", configService.CurrentLanguage);
 			formControls.lblNote.Text = LanguageResources.GetString("LabelNote", configService.CurrentLanguage);
 			formControls.lblFrom.Text = LanguageResources.GetString("LabelFrom", configService.CurrentLanguage);
 			formControls.lblTo.Text = LanguageResources.GetString("LabelTo", configService.CurrentLanguage);
@@ -430,6 +438,30 @@ namespace FileCopyTool.UI
 			SaveConfigurations();
 		}
 
+		private void OpenHomeFileExplorer()
+		{
+			ProcessStartInfo processInfo = new()
+			{
+				FileName = "explorer.exe",
+				Arguments = "shell:Home",
+				UseShellExecute = true,
+				Verb = "runas"
+			};
+
+			try
+			{
+				Process.Start(processInfo);
+			} catch (Exception ex)
+			{
+				if (configService.CurrentPopupSetting <= SettingsConfig.PopupSettingOptions.ErrorOnly)
+					MessageBox.Show(
+						string.Format(LanguageResources.GetString("MessageCommonError", configService.CurrentLanguage), ex.Message),
+						LanguageResources.GetString("MessageError", configService.CurrentLanguage),
+						MessageBoxButtons.OK,
+						MessageBoxIcon.Error);
+			}
+		}
+
 		private void MinimizeToTray()
 		{
 			SaveConfigurations();
@@ -482,6 +514,7 @@ namespace FileCopyTool.UI
 		public ToolStripMenuItem popupSettingErrorOnly;
 		public ToolStripMenuItem popupSettingNever;
 		public ToolStripMenuItem languageMenu;
+		public ToolStripMenuItem openFileExplorerMenu;
 		public Label lblNote;
 		public Label lblFrom;
 		public Label lblTo;
@@ -504,6 +537,7 @@ namespace FileCopyTool.UI
 			popupSettingErrorOnly = new ToolStripMenuItem();
 			popupSettingNever = new ToolStripMenuItem();
 			languageMenu = new ToolStripMenuItem();
+			openFileExplorerMenu = new ToolStripMenuItem();
 			lblNote = new Label();
 			lblFrom = new Label();
 			lblTo = new Label();
