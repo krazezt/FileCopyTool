@@ -27,4 +27,5 @@ FileCopyTool is a Windows Forms application designed to simplify copying multipl
 1. **Clone or Download**:
    - Clone the repository or download the source code.
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/krazezt/FileCopyTool.git
+
