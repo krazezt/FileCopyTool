@@ -1,4 +1,5 @@
 ﻿using FileCopyTool.Models;
+using FileCopyTool.Services.Data;
 using FileCopyTool.Services.Interfaces;
 
 namespace FileCopyTool.UI
@@ -10,6 +11,8 @@ namespace FileCopyTool.UI
 		private readonly ISystemTrayService systemTrayService;
 		private readonly IHotKeyService hotKeyService;
 		private readonly List<CopyFileRowPanel> copyRows = [];
+		private readonly MenuStrip toolBar = new();
+		private readonly FormControls formControls = new();
 		private readonly Panel rowsPanel = new() { Dock = DockStyle.Fill, AutoScroll = true };
 
 		public MainForm(
@@ -18,6 +21,7 @@ namespace FileCopyTool.UI
 				ISystemTrayService systemTrayService,
 				IHotKeyService hotKeyService)
 		{
+			configService.LoadAppSettings();
 			this.configService = configService;
 			this.fileCopyService = fileCopyService;
 			this.systemTrayService = systemTrayService;
@@ -25,12 +29,13 @@ namespace FileCopyTool.UI
 			InitializeComponent();
 			this.systemTrayService.Initialize(ShowForm, ExitApplication);
 			this.hotKeyService.RegisterHotKey(this.Handle);
+			this.Controls.Add(toolBar);
 			LoadConfigurations();
 		}
 
 		private void InitializeComponent()
 		{
-			Text = "File Copy Tool (Ctrl + Shift + T to perform copy)";
+			Text = LanguageResources.GetString("FormTitle", configService.CurrentLanguage);
 			FormBorderStyle = FormBorderStyle.Sizable;
 			MaximizeBox = true;
 			Icon = new Icon(Path.Combine(Application.StartupPath, @"Resources\Icon.ico"));
@@ -41,25 +46,56 @@ namespace FileCopyTool.UI
 			{
 				Dock = DockStyle.Fill,
 				ColumnCount = 2,
-				RowCount = 3,
+				RowCount = 4,
 				AllowDrop = true
 			};
 			mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 			mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 15F));
-			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
-			mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 15F));  // Note label
+			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));  // From - To label panel
+			mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // Rows panel
+			mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));  // Button panel
 
-			var lblNote = new Label { Text = "※ Note: Run File Explorer as Administrator for drag-and-drop.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.TopLeft, Height = 15 };
-			var lblFrom = new Label { Text = "From\n(Multiple files accepted)", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
-			var lblTo = new Label { Text = "To\n(Single folder only)", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
+			ToolStripMenuItem toolsMenu = new(LanguageResources.GetString("ToolsMenu", configService.CurrentLanguage));
+			ToolStripMenuItem settingsMenu = new(LanguageResources.GetString("SettingsMenu", configService.CurrentLanguage));
+			SetupToolsMenu(toolsMenu);
 
+			ToolStripMenuItem popupMenu = new(LanguageResources.GetString("PopupMenu", configService.CurrentLanguage));
+			ToolStripMenuItem languageMenu = new(LanguageResources.GetString("LanguageMenu", configService.CurrentLanguage));
+			SetupPopupMenu(popupMenu);
+			SetupLanguageMenu(languageMenu);
+
+			settingsMenu.DropDownItems.Add(popupMenu);
+			settingsMenu.DropDownItems.Add(languageMenu);
+
+			toolBar.Items.Add(toolsMenu);
+			toolBar.Items.Add(new ToolStripSeparator());
+			toolBar.Items.Add(settingsMenu);
+			toolBar.Items.Add(new ToolStripSeparator());
+			
+			var lblNote = new Label { Text = LanguageResources.GetString("LabelNote", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.TopLeft, Height = 15 };
+			var lblFrom = new Label { Text = LanguageResources.GetString("LabelFrom", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
+			var lblTo = new Label { Text = LanguageResources.GetString("LabelTo", configService.CurrentLanguage), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
+
+			var languagePanel = new FlowLayoutPanel { Dock = DockStyle.Fill };
 			var buttonPanel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, Height = 40 };
-			var btnExit = new Button { Text = "Exit", Size = new Size(75, 30) };
-			var btnMinimize = new Button { Text = "Minimize", Size = new Size(75, 30) };
-			var btnCopy = new Button { Text = "Perform Copy", Size = new Size(120, 30) };
-			var btnAddRow = new Button { Text = "Add Row", Size = new Size(75, 30) };
+			var btnExit = new Button { Text = LanguageResources.GetString("ButtonExit", configService.CurrentLanguage), Size = new Size(75, 30) };
+			var btnMinimize = new Button { Text = LanguageResources.GetString("ButtonMinimize", configService.CurrentLanguage), Size = new Size(75, 30) };
+			var btnCopy = new Button { Text = LanguageResources.GetString("ButtonCopy", configService.CurrentLanguage), Size = new Size(120, 30) };
+			var btnAddRow = new Button { Text = LanguageResources.GetString("ButtonAddRow", configService.CurrentLanguage), Size = new Size(75, 30) };
+
+			formControls.toolsMenu = toolsMenu;
+			formControls.settingsMenu = settingsMenu;
+			formControls.popupMenu = popupMenu;
+			formControls.languageMenu = languageMenu;
+			formControls.lblNote = lblNote;
+			formControls.lblFrom = lblFrom;
+			formControls.lblTo = lblTo;
+			formControls.btnExit = btnExit;
+			formControls.btnMinimize = btnMinimize;
+			formControls.btnCopy = btnCopy;
+			formControls.btnAddRow = btnAddRow;
+
 			buttonPanel.Controls.Add(btnExit);
 			buttonPanel.Controls.Add(btnMinimize);
 			buttonPanel.Controls.Add(btnCopy);
@@ -81,14 +117,9 @@ namespace FileCopyTool.UI
 			btnMinimize.Click += (s, e) => MinimizeToTray();
 			btnExit.Click += (s, e) => ExitApplication();
 			btnAddRow.Click += (s, e) => AddCopyRow();
-			FormClosing += (s, e) =>
-			{
-				if (e.CloseReason == CloseReason.UserClosing)
-				{
-					e.Cancel = true;
-					MinimizeToTray();
-				}
-			};
+			FormClosing += (s, e) => CustomFormClosed(s, e);
+
+			UpdateUIText();
 		}
 
 		protected override void WndProc(ref Message m)
@@ -114,7 +145,7 @@ namespace FileCopyTool.UI
 
 		private void LoadConfigurations()
 		{
-			var configs = configService.LoadConfigurations();
+			var configs = configService.LoadCopyConfigurations();
 			if (configs.Count == 0)
 			{
 				AddCopyRow();
@@ -123,7 +154,7 @@ namespace FileCopyTool.UI
 
 			for (int i = 0; i < configs.Count; i++)
 			{
-				var newRow = new CopyFileRowPanel(rowsPanel.Width, i == 0)
+				var newRow = new CopyFileRowPanel(rowsPanel.Width, configService.CurrentLanguage, i == 0)
 				{
 					FromText = configs[i].From,
 					ToText = configs[i].To,
@@ -154,12 +185,148 @@ namespace FileCopyTool.UI
 				To = row.ToText,
 				IsChecked = row.IsChecked
 			}).ToList();
-			configService.SaveConfigurations(configs);
+			
+			configService.SaveCopyConfigurations(configs);
+		}
+
+		private void ChangePopupSetting(SettingsConfig.PopupSettingOptions popupSettingOption)
+		{
+			configService.CurrentPopupSetting = popupSettingOption;
+			configService.SaveAppSettings();
+			SaveConfigurations();
+			UpdateUIText();
+		}
+
+		private void ChangeLanguage(string lang)
+		{
+			configService.CurrentLanguage = lang;
+			configService.SaveAppSettings();
+			SaveConfigurations();
+			UpdateUIText();
+		}
+
+		private void SetupToolsMenu(ToolStripMenuItem toolsMenu)
+		{
+			ToolStripMenuItem addRowMenu = new(LanguageResources.GetString("ButtonAddRow", configService.CurrentLanguage));
+			ToolStripMenuItem performCopyMenu = new(LanguageResources.GetString("ButtonCopy", configService.CurrentLanguage));
+			ToolStripMenuItem minimizeMenu = new(LanguageResources.GetString("ButtonMinimize", configService.CurrentLanguage));
+			ToolStripMenuItem exitMenu = new(LanguageResources.GetString("ButtonExit", configService.CurrentLanguage));
+
+			addRowMenu.Click += (s, e) => AddCopyRow();
+			performCopyMenu.Click += (s, e) => PerformCopy();
+			minimizeMenu.Click += (s, e) => MinimizeToTray();
+			exitMenu.Click += (s, e) => ExitApplication();
+
+			toolsMenu.DropDownItems.Add(addRowMenu);
+			toolsMenu.DropDownItems.Add(performCopyMenu);
+			toolsMenu.DropDownItems.Add(minimizeMenu);
+			toolsMenu.DropDownItems.Add(exitMenu);
+
+			formControls.addRowMenu = addRowMenu;
+			formControls.performCopyMenu = performCopyMenu;
+			formControls.minimizeMenu = minimizeMenu;
+			formControls.exitMenu = exitMenu;
+		}
+
+		private void SetupPopupMenu(ToolStripMenuItem popupMenu)
+		{
+			ToolStripMenuItem popupSettingAll = new(LanguageResources.GetString("PopupSettingAll", configService.CurrentLanguage))
+			{
+				CheckOnClick = true,
+				Checked = (configService.CurrentPopupSetting == SettingsConfig.PopupSettingOptions.All)
+			};
+
+			ToolStripMenuItem popupSettingWarningOrError = new(LanguageResources.GetString("PopupSettingWarningOrError", configService.CurrentLanguage))
+			{
+				CheckOnClick = true,
+				Checked = (configService.CurrentPopupSetting == SettingsConfig.PopupSettingOptions.WarningOrError)
+			};
+
+			ToolStripMenuItem popupSettingErrorOnly = new(LanguageResources.GetString("PopupSettingErrorOnly", configService.CurrentLanguage))
+			{
+				CheckOnClick = true,
+				Checked = (configService.CurrentPopupSetting == SettingsConfig.PopupSettingOptions.ErrorOnly)
+			};
+
+			ToolStripMenuItem popupSettingNever = new(LanguageResources.GetString("PopupSettingNever", configService.CurrentLanguage))
+			{
+				CheckOnClick = true,
+				Checked = (configService.CurrentPopupSetting == SettingsConfig.PopupSettingOptions.Never)
+			};
+
+			popupSettingAll.Click += (s, e) =>
+			{
+				foreach (ToolStripMenuItem item in popupMenu.DropDownItems)
+					item.Checked = false;
+
+				popupSettingAll.Checked = true;
+				ChangePopupSetting(SettingsConfig.PopupSettingOptions.All);
+			};
+
+			popupSettingWarningOrError.Click += (s, e) =>
+			{
+				foreach (ToolStripMenuItem item in popupMenu.DropDownItems)
+					item.Checked = false;
+
+				popupSettingWarningOrError.Checked = true;
+				ChangePopupSetting(SettingsConfig.PopupSettingOptions.WarningOrError);
+			};
+
+			popupSettingErrorOnly.Click += (s, e) =>
+			{
+				foreach (ToolStripMenuItem item in popupMenu.DropDownItems)
+					item.Checked = false;
+
+				popupSettingErrorOnly.Checked = true;
+				ChangePopupSetting(SettingsConfig.PopupSettingOptions.ErrorOnly);
+			};
+
+			popupSettingNever.Click += (s, e) =>
+			{
+				foreach (ToolStripMenuItem item in popupMenu.DropDownItems)
+					item.Checked = false;
+
+				popupSettingNever.Checked = true;
+				ChangePopupSetting(SettingsConfig.PopupSettingOptions.Never);
+			};
+
+			popupMenu.DropDownItems.Add(popupSettingAll);
+			popupMenu.DropDownItems.Add(popupSettingWarningOrError);
+			popupMenu.DropDownItems.Add(popupSettingErrorOnly);
+			popupMenu.DropDownItems.Add(popupSettingNever);
+
+			formControls.popupSettingAll = popupSettingAll;
+			formControls.popupSettingWarningOrError = popupSettingWarningOrError;
+			formControls.popupSettingErrorOnly = popupSettingErrorOnly;
+			formControls.popupSettingNever = popupSettingNever;
+		}
+
+		private void SetupLanguageMenu(ToolStripMenuItem languageMenu)
+		{
+			foreach (string lang in LanguageResources.SupportedLanguageTitles)
+			{
+				ToolStripMenuItem langItem = new(lang)
+				{
+					CheckOnClick = true,
+					Checked = (lang == configService.CurrentLanguage)
+				};
+
+				langItem.Click += (s, e) =>
+				{
+					foreach (ToolStripMenuItem item in languageMenu.DropDownItems)
+						item.Checked = false;
+
+					langItem.Checked = true;
+					ChangeLanguage(LanguageResources.SupportedLanguages[Array.IndexOf(LanguageResources.SupportedLanguageTitles, lang)]);
+				};
+
+				languageMenu.DropDownItems.Add(langItem);
+			}
 		}
 
 		private void AddCopyRow()
 		{
-			var newRow = new CopyFileRowPanel(rowsPanel.Width, copyRows.Count == 0);
+			var newRow = new CopyFileRowPanel(rowsPanel.Width, configService.CurrentLanguage, copyRows.Count == 0);
 			newRow.Location = new Point(0, copyRows.Count * (newRow.Height + 5));
 			if (copyRows.Count > 0)
 			{
@@ -174,6 +341,36 @@ namespace FileCopyTool.UI
 			copyRows.Add(newRow);
 			rowsPanel.Controls.Add(newRow);
 			UpdateRowPositions();
+		}
+
+		private void UpdateUIText()
+		{
+			Text = LanguageResources.GetString("FormTitle", configService.CurrentLanguage);
+			formControls.toolsMenu.Text = LanguageResources.GetString("ToolsMenu", configService.CurrentLanguage);
+			formControls.addRowMenu.Text = LanguageResources.GetString("ButtonAddRow", configService.CurrentLanguage);
+			formControls.performCopyMenu.Text = LanguageResources.GetString("ButtonCopy", configService.CurrentLanguage);
+			formControls.minimizeMenu.Text = LanguageResources.GetString("ButtonMinimize", configService.CurrentLanguage);
+			formControls.exitMenu.Text = LanguageResources.GetString("ButtonExit", configService.CurrentLanguage);
+			formControls.settingsMenu.Text = LanguageResources.GetString("SettingsMenu", configService.CurrentLanguage);
+			formControls.popupSettingAll.Text = LanguageResources.GetString("PopupSettingAll", configService.CurrentLanguage);
+			formControls.popupSettingWarningOrError.Text = LanguageResources.GetString("PopupSettingWarningOrError", configService.CurrentLanguage);
+			formControls.popupSettingErrorOnly.Text = LanguageResources.GetString("PopupSettingErrorOnly", configService.CurrentLanguage);
+			formControls.popupSettingNever.Text = LanguageResources.GetString("PopupSettingNever", configService.CurrentLanguage);
+			formControls.popupMenu.Text = LanguageResources.GetString("PopupMenu", configService.CurrentLanguage);
+			formControls.languageMenu.Text = LanguageResources.GetString("LanguageMenu", configService.CurrentLanguage);
+			formControls.lblNote.Text = LanguageResources.GetString("LabelNote", configService.CurrentLanguage);
+			formControls.lblFrom.Text = LanguageResources.GetString("LabelFrom", configService.CurrentLanguage);
+			formControls.lblTo.Text = LanguageResources.GetString("LabelTo", configService.CurrentLanguage);
+			formControls.btnExit.Text = LanguageResources.GetString("ButtonExit", configService.CurrentLanguage);
+			formControls.btnMinimize.Text = LanguageResources.GetString("ButtonMinimize", configService.CurrentLanguage);
+			formControls.btnCopy.Text = LanguageResources.GetString("ButtonCopy", configService.CurrentLanguage);
+			formControls.btnAddRow.Text = LanguageResources.GetString("ButtonAddRow", configService.CurrentLanguage);
+			foreach (var row in copyRows)
+			{
+				row.BtnBrowseFrom.Text = LanguageResources.GetString("ButtonBrowse", configService.CurrentLanguage);
+				row.BtnBrowseTo.Text = LanguageResources.GetString("ButtonBrowse", configService.CurrentLanguage);
+				row.BtnDelete.Text = LanguageResources.GetString("ButtonDelete", configService.CurrentLanguage);
+			}
 		}
 
 		private void UpdateRowPositions()
@@ -201,14 +398,34 @@ namespace FileCopyTool.UI
 				if (!success)
 				{
 					hasErrors = true;
-					MessageBox.Show($"Error copying files: {errorMessage}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					if (configService.CurrentPopupSetting <= SettingsConfig.PopupSettingOptions.ErrorOnly)
+						MessageBox.Show(
+							string.Format(LanguageResources.GetString("MessageCopyError", configService.CurrentLanguage), errorMessage),
+							LanguageResources.GetString("MessageError", configService.CurrentLanguage),
+							MessageBoxButtons.OK,
+							MessageBoxIcon.Error);
 				}
 			}
 
-			MessageBox.Show(hasErrors ? "Copy operation completed, but some errors occurred!" : "Files copied successfully!",
-				hasErrors ? "Warning" : "Success",
-				MessageBoxButtons.OK,
-				hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+			if (hasErrors)
+			{
+				if (configService.CurrentPopupSetting <= SettingsConfig.PopupSettingOptions.WarningOrError)
+				{
+					MessageBox.Show(
+						LanguageResources.GetString("MessageCopyWarning", configService.CurrentLanguage),
+						LanguageResources.GetString("MessageWarning", configService.CurrentLanguage),
+						MessageBoxButtons.OK,
+						MessageBoxIcon.Warning);
+				}
+			} else
+			{
+				if (configService.CurrentPopupSetting <= SettingsConfig.PopupSettingOptions.All)
+					MessageBox.Show(
+						LanguageResources.GetString("MessageCopySuccess", configService.CurrentLanguage),
+						LanguageResources.GetString("MessageSuccess", configService.CurrentLanguage),
+						MessageBoxButtons.OK,
+						MessageBoxIcon.Information);
+			}
 
 			SaveConfigurations();
 		}
@@ -217,6 +434,15 @@ namespace FileCopyTool.UI
 		{
 			SaveConfigurations();
 			Hide();
+		}
+
+		private void CustomFormClosed(object? sender, FormClosingEventArgs e)
+		{
+			if (e.CloseReason == CloseReason.UserClosing)
+			{
+				e.Cancel = true;
+				MinimizeToTray();
+			}
 		}
 
 		private void ShowForm()
@@ -239,6 +465,52 @@ namespace FileCopyTool.UI
 				hotKeyService.Dispose();
 			}
 			base.Dispose(disposing);
+		}
+	}
+
+	public class FormControls
+	{
+		public ToolStripMenuItem toolsMenu;
+		public ToolStripMenuItem addRowMenu;
+		public ToolStripMenuItem performCopyMenu;
+		public ToolStripMenuItem minimizeMenu;
+		public ToolStripMenuItem settingsMenu;
+		public ToolStripMenuItem exitMenu;
+		public ToolStripMenuItem popupMenu;
+		public ToolStripMenuItem popupSettingAll;
+		public ToolStripMenuItem popupSettingWarningOrError;
+		public ToolStripMenuItem popupSettingErrorOnly;
+		public ToolStripMenuItem popupSettingNever;
+		public ToolStripMenuItem languageMenu;
+		public Label lblNote;
+		public Label lblFrom;
+		public Label lblTo;
+		public Button btnExit;
+		public Button btnMinimize;
+		public Button btnCopy;
+		public Button btnAddRow;
+
+		public FormControls()
+		{
+			toolsMenu = new ToolStripMenuItem();
+			addRowMenu = new ToolStripMenuItem();
+			performCopyMenu = new ToolStripMenuItem();
+			minimizeMenu = new ToolStripMenuItem();
+			exitMenu = new ToolStripMenuItem();
+			settingsMenu = new ToolStripMenuItem();
+			popupMenu = new ToolStripMenuItem();
+			popupSettingAll = new ToolStripMenuItem();
+			popupSettingWarningOrError = new ToolStripMenuItem();
+			popupSettingErrorOnly = new ToolStripMenuItem();
+			popupSettingNever = new ToolStripMenuItem();
+			languageMenu = new ToolStripMenuItem();
+			lblNote = new Label();
+			lblFrom = new Label();
+			lblTo = new Label();
+			btnExit = new Button();
+			btnMinimize = new Button();
+			btnCopy = new Button();
+			btnAddRow = new Button();
 		}
 	}
 }

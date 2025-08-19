@@ -14,8 +14,11 @@
 		<None Include="Resources\Icon.ico">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Include="Resources\config.json">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		<None Include="Resources\copy-config.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="Resources\settings-config.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 </Project>

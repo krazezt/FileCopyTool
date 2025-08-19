@@ -1,13 +1,22 @@
-﻿namespace FileCopyTool.UI
+﻿using FileCopyTool.Services.Data;
+
+namespace FileCopyTool.UI
 {
 	public class CopyFileRowPanel : Panel
 	{
-		private TextBox txtFrom;
-		private TextBox txtTo;
-		private Button btnBrowseFrom;
-		private Button btnBrowseTo;
-		private CheckBox chkEnabled;
-		private Button btnDelete;
+		private readonly TextBox txtFrom;
+		private readonly TextBox txtTo;
+		private readonly Button btnBrowseFrom;
+		private readonly Button btnBrowseTo;
+		private readonly CheckBox chkEnabled;
+		private readonly Button btnDelete;
+
+		public TextBox TxtFrom { get => txtFrom; }
+		public TextBox TextTo { get => txtTo; }
+		public Button BtnBrowseFrom { get => btnBrowseFrom; }
+		public Button BtnBrowseTo { get => btnBrowseTo; }
+		public CheckBox ChkEnabled { get => chkEnabled; }
+		public Button BtnDelete { get => btnDelete; }
 
 		public string FromText
 		{
@@ -29,7 +38,7 @@
 
 		public Button DeleteButton => btnDelete;
 
-		public CopyFileRowPanel(int parentWidth, bool isFirstRow = false)
+		public CopyFileRowPanel(int parentWidth, string language, bool isFirstRow = false)
 		{
 			this.Size = new Size(parentWidth - 5, 50);
 			this.BorderStyle = BorderStyle.FixedSingle;
@@ -44,7 +53,7 @@
 
 			btnDelete = new Button
 			{
-				Text = "Delete",
+				Text = LanguageResources.GetString("ButtonDelete", language),
 				Size = new Size(50, 20),
 				Location = new Point(2, 25),
 				Enabled = !isFirstRow
@@ -62,7 +71,7 @@
 
 			btnBrowseFrom = new Button
 			{
-				Text = "Browse",
+				Text = LanguageResources.GetString("ButtonBrowse", language),
 				Size = new Size(55, 40),
 				Location = new Point(parentWidth / 2 - 45, 5)
 			};
@@ -79,7 +88,7 @@
 
 			btnBrowseTo = new Button
 			{
-				Text = "Browse",
+				Text = LanguageResources.GetString("ButtonBrowse", language),
 				Size = new Size(55, 40),
 				Location = new Point(parentWidth - 70, 5)
 			};
@@ -159,8 +168,7 @@
 		{
 			if (e.Data?.GetDataPresent(DataFormats.FileDrop) == true)
 			{
-				string[]? files = e.Data.GetData(DataFormats.FileDrop) as string[];
-				if (files != null && files.Length == 1 && Directory.Exists(files[0]))
+				if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length == 1 && Directory.Exists(files[0]))
 				{
 					txtTo.Text = files[0];
 				}
